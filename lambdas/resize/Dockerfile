@@ -4,10 +4,9 @@ FROM public.ecr.aws/lambda/python:3.13
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 
-# Copy the code into /var/task (Lambda expects code here)
-COPY handler.py ${LAMBDA_TASK_ROOT}
-COPY pyproject.toml ${LAMBDA_TASK_ROOT}
+COPY pyproject.toml ./
+RUN uv pip install --system .
 
-RUN pip install boto3 pillow
+COPY handler.py .
 # Command to run the handler
 CMD ["handler.resize_handler"]
