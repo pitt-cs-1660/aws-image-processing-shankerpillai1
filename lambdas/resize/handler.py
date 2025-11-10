@@ -47,23 +47,18 @@ def resize_handler(event, context):
                     print(f"Processing: s3://{bucket_name}/{object_key}")
 
                     image = download_from_s3(bucket_name, object_key)
+                    print(f"Downloaded image: {image.size}")
 
-                    # Process image (resize + grayscale + exif)
-                    processed_img, exif_data = process_image(image)
+                    # resize image to 512x512
+                    resized_image = image.resize((512, 512), Image.Resampling.LANCZOS)
+                    print(f"Resized to: {resized_image.size}")
 
-                    # Construct output path
+                    # upload processed image to /processed/resize/
+                    from pathlib import Path
                     filename = Path(object_key).name
-                    processed_key = f"processed/{filename}"
-
-                    # Upload processed image
-                    upload_to_s3(bucket_name, processed_key, processed_img)
-                    print(f"Uploaded processed image to s3://{bucket_name}/{processed_key}")
-
-                    # Optionally upload EXIF metadata as JSON
-                    exif_json = json.dumps(exif_data, indent=2)
-                    metadata_key = f"processed/{Path(filename).stem}_metadata.json"
-                    upload_to_s3(bucket_name, metadata_key, exif_json, content_type='application/json')
-                    print(f"Uploaded EXIF metadata to s3://{bucket_name}/{metadata_key}")
+                    output_key = f"processed/resize/{filename}"
+                    upload_to_s3(bucket_name, output_key, resized_image)
+                    print(f"Uploaded to: {output_key}")
 
                     processed_count += 1
 
